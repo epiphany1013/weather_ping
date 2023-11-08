@@ -1,6 +1,7 @@
 import json
 import time
 import requests
+from datetime import datetime
 from api_key import line_key, weather_key
 
 cities = [
@@ -16,18 +17,34 @@ previous_weather = [
     "기존 날씨",
 ]
 index = 0
+last_executed_day = None
+while True:
+    current_time = datetime.now()
+    if current_time.hour == 8 and (last_executed_day is None or last_executed_day != current_time.date()):
+        for city in cities:
+            city_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_key}&lang=kr&units=metric"
+            response = requests.get(city_url)
+            parsed_data = json.loads(response.text)
 
-while (True):
-    for city in cities:
+            message = {
+                "message": f"{city:<15} 의 현재 온도는 {str(parsed_data['main']['temp'])}\n" +
+                           f"체감 온도는 {str(parsed_data['main']['feels_like'])}\n" +
+                           f"최고 온도는 {str(parsed_data['main']['temp_max'])}\n" +
+                           f"최저 온도는 {str(parsed_data['main']['temp_min'])}\n" +
+                           f"현재 습도는 {str(parsed_data['main']['humidity'])}\n"
+            }
+            requests.post(api_url, headers=headers, data=message)
+        last_executed_day = current_time.date()
+
+    for index, city in enumerate(cities):
         city_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_key}&lang=kr&units=metric"
         response = requests.get(city_url)
         parsed_data = json.loads(response.text)
-        if (previous_weather[index % 2] != parsed_data['weather'][0]['description']): # 이전 날씨와 다를 경우만 아래 코드 실행
-            message = {
-                "message": f"{city:15}  {parsed_data['weather'][0]['description']}" #라인에 보낼 message 구성
-            }
-            requests.post(api_url, headers=headers, data=message) # LINE api에 POST method로 메시지 보냄
-        previous_weather[index % 2] = parsed_data['weather'][0]['description'] # 받아온 날씨 정보를 pasring 해서 이전 날씨 데이터에 넣어줌.
-        # print(f"{city:15}  {parsed_data['weather'][0]['description']}")
-        index += 1
-    time.sleep(600) # 10분 간격으로 loop 순회
+
+        if previous_weather[index] != parsed_data['weather'][0]['description']:
+            message = {"message": f"{city:15}  {parsed_data['weather'][0]['description']}"}
+            requests.post(api_url, headers=headers, data=message)
+            previous_weather[index] = parsed_data['weather'][0]['description']
+
+    time.sleep(10)
+
