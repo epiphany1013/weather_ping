@@ -20,7 +20,7 @@ index = 0
 last_executed_day = None
 while True:
     current_time = datetime.now()
-    if current_time.hour == 11 and (last_executed_day is None or last_executed_day != current_time.date()):
+    if current_time.hour == 7 and (last_executed_day is None or last_executed_day != current_time.date()):
         for city in cities:
             city_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_key}&lang=kr&units=metric"
             response = requests.get(city_url)
@@ -48,4 +48,3 @@ while True:
             previous_weather[index] = parsed_data['weather'][0]['description']
 
     time.sleep(10)
-
