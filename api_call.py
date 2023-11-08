@@ -20,14 +20,15 @@ index = 0
 last_executed_day = None
 while True:
     current_time = datetime.now()
-    if current_time.hour == 8 and (last_executed_day is None or last_executed_day != current_time.date()):
+    if current_time.hour == 11 and (last_executed_day is None or last_executed_day != current_time.date()):
         for city in cities:
             city_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_key}&lang=kr&units=metric"
             response = requests.get(city_url)
             parsed_data = json.loads(response.text)
 
             message = {
-                "message": f"{city:<15} 의 현재 온도는 {str(parsed_data['main']['temp'])}\n" +
+                "message": f"{city:<15} \n"
+                           f"현재 온도는 {str(parsed_data['main']['temp'])}\n" +
                            f"체감 온도는 {str(parsed_data['main']['feels_like'])}\n" +
                            f"최고 온도는 {str(parsed_data['main']['temp_max'])}\n" +
                            f"최저 온도는 {str(parsed_data['main']['temp_min'])}\n" +
@@ -42,7 +43,7 @@ while True:
         parsed_data = json.loads(response.text)
 
         if previous_weather[index] != parsed_data['weather'][0]['description']:
-            message = {"message": f"{city:15}  {parsed_data['weather'][0]['description']}"}
+            message = {"message": f"{city:15}\n  {parsed_data['weather'][0]['description']}"}
             requests.post(api_url, headers=headers, data=message)
             previous_weather[index] = parsed_data['weather'][0]['description']
 
